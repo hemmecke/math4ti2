@@ -51,17 +51,23 @@ zsolve[sys_List] := Module[
 *)
 
 zsolve[A_List, r_List, b_List, s_List] := Module[
-    {n, l},
+    {n, l, result},
     n = StringJoin["4ti2-",ToString[$SessionID]];
     writeMatrix[A,n,"mat"];
     writeMatrix[{b},n,"rhs"];
     writeMatrix[{s},n,"sign"];
-    l = r/.{-1       -> "<", 1           -> "<", 0    -> "=",
+    l = r/.{-1       -> "<", 1           -> ">", 0    -> "=",
             LessEqual-> "<", GreaterEqual-> ">", Equal-> "="};
     writeMatrix[{l},n,"rel"];
     RunProcess[{zsolvecmd, n}];
-    {ReadList[n<>".zinhom", Number, RecordLists -> True],
-     ReadList[n<>".zhom", Number, RecordLists -> True]}
+    result = {
+        ReadList[n<>".zinhom", Number, RecordLists -> True],
+        ReadList[n<>".zhom",   Number, RecordLists -> True]
+    };
+    (* Now we clean up the temporary files *)
+    Scan[(DeleteFile[n<>"."<>#])&, {"mat", "rhs", "sign", "rel", "zinhom", "zhom"}];
+    (* return *)
+    result
 ];
 
 (* If m is a list of lists, then it is a list of row vectors.
