@@ -9,7 +9,7 @@
 (*                                                              *)
 (****************************************************************)
 
-BeginPackage["Math4ti2`"]
+BeginPackage["math4ti2`"]
 
 zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, namely sys={x - y <= 2, -3 x + y <= 1, x + y >= 1, y >= 0}, then simply calling zsolve[sys] will return a pair (list) with the inhomogeneous and the homogeneous solutions."
 
@@ -31,15 +31,15 @@ zsolve[sys_List] := Module[
     (* Remove positivity/negativity conditions *)
     s = Select[sys, !signCondition[#]&];
     (* Replace the relation symbols by Equal signs, then extract the coefficients *)
-    c = Normal[CoefficientArrays[Equal @@@ s]];
+    c = Normal[CoefficientArrays[Equal @@@ s, vars]];
     b = - First[c];
     A = First[Rest[c]];
     (* Translate relation signs into -1 (for <=), +1 for (>=) and 0 (for ==). *)
     r = Map[Head,s];
     (* Extract positivity/negativity conditions *)
     s = Select[sys, signCondition[#]&];
-    s = First[Part[Normal[CoefficientArrays[Equal @@@ s, vars]], 2]];
-    zsolve[A, r, b, s]
+    If[s=!={}, s = First[Part[Normal[CoefficientArrays[Equal @@@ s, vars]],2]]];
+    Append[zsolve[A, r, b, s],vars]
 ];
 
 (* We assume that sys is given in a form like
@@ -61,22 +61,28 @@ zsolve[A_List, r_List, b_List, s_List] := Module[
     writeMatrix[{l},n,"rel"];
     RunProcess[{zsolvecmd, n}];
     result = {
-        ReadList[n<>".zinhom", Number, RecordLists -> True],
-        ReadList[n<>".zhom",   Number, RecordLists -> True]
+        Rest[ReadList[n<>".zinhom", Number, RecordLists -> True]],
+        Rest[ReadList[n<>".zhom",   Number, RecordLists -> True]]
     };
     (* Now we clean up the temporary files *)
     Scan[(DeleteFile[n<>"."<>#])&, {"mat", "rhs", "sign", "rel", "zinhom", "zhom"}];
+
     (* return *)
     result
 ];
 
 (* If m is a list of lists, then it is a list of row vectors.
-   If m is just a list, it is a column vector. *)
+   If m is just a list, it is a column vector.
+   Do not write anything if mat is an empty list.
+*)
+
 writeMatrix[mat_, n_, ext_] := Module[
     {filename, rows, cols},
     filename = StringJoin[n, ".", ext];
     rows = Length[mat];
+    If[rows==0, Return[]];
     cols=Length[First[mat]];
+    If[cols==0, Return[]];
     Export[filename, Join[{{rows, cols}}, mat], "Table"]
 ];
 
