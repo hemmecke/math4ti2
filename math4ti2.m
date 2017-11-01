@@ -11,7 +11,9 @@
 
 BeginPackage["math4ti2`"]
 
-zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, namely sys={x - y <= 2, -3 x + y <= 1, x + y >= 1, y >= 0}, then simply calling zsolve[sys] will return a pair (list) with the inhomogeneous and the homogeneous solutions."
+zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, namely sys={x - y <= 2, -3 x + y <= 1, x + y >= 1, y >= 0}, then simply calling zsolve[sys] will return a triple (list) with the inhomogeneous and the homogeneous solutions and the list of variables that correspond to the solution sets.
+
+zsolve can also be called with 4 arguments like zsolve[A, r, b, s]. The above example would then be entered as A={{1,-1},{-3,1},{1,1}}; r={LessEqual,LessEqual,GreaterEqual}; b={2,1,1}; s={0,1}. Also r={-1,-1,1} or r={\"<\",\"<\", \">\") would be accepted.";
 
 Begin["`Private`"]
 
