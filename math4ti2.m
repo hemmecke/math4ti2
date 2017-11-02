@@ -27,9 +27,14 @@ zsolvecmd = bindir <> "/zsolve";
 signCondition[x_] := (Length[Variables[First[x]]] == 1) && (Part[x,2] === 0);
 
 zsolve[sys_List] := Module[
-    {vars, s, c, b, A, r},
+    {vars},
     (* Extract the variables of the system *)
     vars = Union[Sequence @@ Map[Variables[First[#]]&, sys]];
+    zsolve[sys, vars]
+];
+
+zsolve[sys_List, vars_] := Module[
+    {s, c, b, A, r},
     (* Remove positivity/negativity conditions *)
     s = Select[sys, !signCondition[#]&];
     (* Replace the relation symbols by Equal signs, then extract the coefficients *)
@@ -84,7 +89,7 @@ zsolve[A_List, r_List, b_List, s_List] := Module[
     };
     (* Now we clean up the temporary files *)
     Scan[(deleteFile[basename,#])&,
-         {"mat", "rhs", "sign", "rel", "zinhom", "zhom"}];
+         {"mat", "rhs", "sign", "rel", "zinhom", "zhom", "zfree"}];
 
     (* return *)
     result
