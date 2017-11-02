@@ -52,22 +52,39 @@ zsolve[sys_List] := Module[
    There is no error handling.
 *)
 
+deleteFile[basename_, ext_] := Module[
+    {filename}
+    ,
+    filename = StringJoin[basename, ".", ext];
+    If[FileExistsQ[filename], DeleteFile[filename]];
+];
+
+readFile[basename_, ext_] := Module[
+    {filename}
+    ,
+    filename = StringJoin[basename, ".", ext];
+    If[!FileExistsQ[filename], Return[{}]];
+    Rest[ReadList[filename, Number, RecordLists -> True]]
+];
+
 zsolve[A_List, r_List, b_List, s_List] := Module[
-    {n, l, result},
-    n = StringJoin["4ti2-",ToString[$SessionID]];
-    writeMatrix[A,n,"mat"];
-    writeMatrix[{b},n,"rhs"];
-    writeMatrix[{s},n,"sign"];
+    {basename, l, result},
+    basename = StringJoin["4ti2-",ToString[$SessionID]];
+    writeMatrix[A,   basename, "mat"];
+    writeMatrix[{b}, basename, "rhs"];
+    writeMatrix[{s}, basename, "sign"];
     l = r/.{-1       -> "<", 1           -> ">", 0    -> "=",
             LessEqual-> "<", GreaterEqual-> ">", Equal-> "="};
-    writeMatrix[{l},n,"rel"];
-    RunProcess[{zsolvecmd, n}];
+    writeMatrix[{l}, basename, "rel"];
+    RunProcess[{zsolvecmd, basename}];
     result = {
-        Rest[ReadList[n<>".zinhom", Number, RecordLists -> True]],
-        Rest[ReadList[n<>".zhom",   Number, RecordLists -> True]]
+        readFile[basename, "zinhom"],
+        readFile[basename, "zhom"],
+        readFile[basename, "zfree"]
     };
     (* Now we clean up the temporary files *)
-    Scan[(DeleteFile[n<>"."<>#])&, {"mat", "rhs", "sign", "rel", "zinhom", "zhom"}];
+    Scan[(deleteFile[basename,#])&,
+         {"mat", "rhs", "sign", "rel", "zinhom", "zhom"}];
 
     (* return *)
     result
@@ -78,9 +95,9 @@ zsolve[A_List, r_List, b_List, s_List] := Module[
    Do not write anything if mat is an empty list.
 *)
 
-writeMatrix[mat_, n_, ext_] := Module[
+writeMatrix[mat_, basename_, ext_] := Module[
     {filename, rows, cols},
-    filename = StringJoin[n, ".", ext];
+    filename = StringJoin[basename, ".", ext];
     rows = Length[mat];
     If[rows==0, Return[]];
     cols=Length[First[mat]];
