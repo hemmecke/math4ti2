@@ -13,7 +13,9 @@ BeginPackage["math4ti2`"]
 
 zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, namely sys={x - y <= 2, -3 x + y <= 1, x + y >= 1, y >= 0}, then simply calling zsolve[sys] will return a quadrupl (list) with the inhomogeneous, the homogeneous solutions, the free solutions, and the list of variables that correspond to the solution sets.
 
-zsolve[sys, vars] where vars must be the variables appearing in sys, is the same as zsolve[sys] only that the order of the variables is specified for the output.
+zsolve[sys] returns the same as zsolve[sys, vars] where vars are the variables appearing in sys in an unspecified order.
+
+zsolve[sys, vars] where vars must be the variables appearing in sys, is the same as zsolve[sys] only that the order of the variables is specified for the output via the vars parameter.
 
 zsolve can also be called with 4 arguments like zsolve[A, r, b, s]. The above example would then be entered as A={{1,-1},{-3,1},{1,1}}; r={LessEqual,LessEqual,GreaterEqual}; b={2,1,1}; s={0,1}. Also r={-1,-1,1} or r={\"<\",\"<\", \">\") would be accepted.
 
@@ -21,9 +23,26 @@ The 3 output matrices correspond to the files with extension '.zinhom', '.zhom',
 
 Begin["`Private`"]
 
-(* You must set this variable to point to the directory of executables of 4ti2 *)
-bindir="/usr/bin";
-zsolvecmd = bindir <> "/4ti2-zsolve";
+(* Set this variable to point to the directory of executables of 4ti2 *)
+zsolvecmd = "/usr/bin/4ti2-zsolve"; (* location debian package 4ti2 *)
+
+copyright[line_, lines___] := Module[
+    {txt = line <> StringJoin[Map[("\n"<>#)&,{lines}]]},
+    If[$Notebooks,
+        CellPrint[Cell[txt, "Text",
+            FontColor -> RGBColor[0, 0, 0],
+            CellFrame -> 0.5,
+            Background -> RGBColor[0.796887, 0.789075, 0.871107],
+            ShowAutoSpellCheck -> False (* Needed from MMA11 on *)
+        ]],
+        Print[txt]
+    ]];
+
+copyright[
+    "math4ti2: Mathematica interface to 4ti2 (http://www.4ti2.de/)",
+    "Copyright (C) 2017, Ralf Hemmecke <ralf@hemmecke.org>",
+    "Copyright (C) 2017, Silviu Radu <sradu@risc.jku.at>"
+];
 
 (* A sign condition looks like "variable >= 0", so there shouldn't be exactly one
    variable on the lefthand side and 0 on the righthand side.
