@@ -9,6 +9,21 @@
 (*                                                              *)
 (****************************************************************)
 
+(*****************************************************************
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*****************************************************************)
+
 BeginPackage["math4ti2`"]
 
 zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, namely sys={x - y <= 2, -3 x + y <= 1, x + y >= 1, y >= 0}, then simply calling zsolve[sys] will return a quadrupl (list) with the inhomogeneous, the homogeneous solutions, the free solutions, and the list of variables that correspond to the solution sets.
