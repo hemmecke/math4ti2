@@ -4,7 +4,7 @@
 (* of the package 4ti2 (http://www.4ti2.de) from within         *)
 (* Mathematica                                                  *)
 (*                                                              *)
-(* Copyright (C) 2017, Ralf Hemmecke <ralf@hemmecke.org>        *)
+(* Copyright (C) 2017, 2018, Ralf Hemmecke <ralf@hemmecke.org>  *)
 (* Copyright (C) 2017, Silviu Radu <sradu@risc.jku.at>          *)
 (*                                                              *)
 (****************************************************************)
@@ -31,6 +31,8 @@ zsolve::usage = "If we are given a linear system as given in the 4ti2 manual, na
 zsolve[sys] returns the same as zsolve[sys, vars] where vars are the variables appearing in sys in an unspecified order.
 
 zsolve[sys, vars] where vars must be the variables appearing in sys, is the same as zsolve[sys] only that the order of the variables is specified for the output via the vars parameter.
+
+zsolve can be called with 3 arguments like zsolve[A, r, b]. The above example would then be entered as A={{1,-1},{-3,1},{1,1},{0,1}}; r={LessEqual,LessEqual,GreaterEqual,GreaterEqual}; b={2,1,1,0}.
 
 zsolve can also be called with 4 arguments like zsolve[A, r, b, s]. The above example would then be entered as A={{1,-1},{-3,1},{1,1}}; r={LessEqual,LessEqual,GreaterEqual}; b={2,1,1}; s={0,1}. Also r={-1,-1,1} or r={\"<\",\"<\", \">\") would be accepted.
 
@@ -59,11 +61,6 @@ copyright[
     "Copyright (C) 2017, Silviu Radu <sradu@risc.jku.at>"
 ];
 
-(* A sign condition looks like "variable >= 0", so there shouldn't be exactly one
-   variable on the lefthand side and 0 on the righthand side.
-*)
-signCondition[x_] := (Length[Variables[First[x]]] == 1) && (Part[x,2] === 0);
-
 zsolve[sys_List] := Module[
     {vars},
     (* Extract the variables of the system *)
@@ -72,19 +69,14 @@ zsolve[sys_List] := Module[
 ];
 
 zsolve[sys_List, vars_] := Module[
-    {s, c, b, A, r},
-    (* Remove positivity/negativity conditions *)
-    s = Select[sys, !signCondition[#]&];
+    {c, b, A, r},
     (* Replace the relation symbols by Equal signs, then extract the coefficients *)
-    c = Normal[CoefficientArrays[Equal @@@ s, vars]];
+    c = Normal[CoefficientArrays[Equal @@@ sys, vars]];
     b = - First[c];
     A = First[Rest[c]];
     (* Translate relation signs into -1 (for <=), +1 for (>=) and 0 (for ==). *)
-    r = Map[Head,s];
-    (* Extract positivity/negativity conditions *)
-    s = Select[sys, signCondition[#]&];
-    If[s=!={}, s = First[Part[Normal[CoefficientArrays[Equal @@@ s, vars]],2]]];
-    Append[zsolve[A, r, b, s],vars]
+    r = Map[Head,sys];
+    Append[zsolve[A, r, b], vars]
 ];
 
 (* We assume that sys is given in a form like
@@ -110,12 +102,14 @@ readFile[basename_, ext_] := Module[
     Rest[ReadList[filename, Number, RecordLists -> True]]
 ];
 
+zsolve[A_List, r_List, b_List] := zsolve[A, r, b, {}];
+
 zsolve[A_List, r_List, b_List, s_List] := Module[
     {basename, l, result},
     basename = StringJoin["4ti2-",ToString[$SessionID]];
     writeMatrix[A,   basename, "mat"];
     writeMatrix[{b}, basename, "rhs"];
-    writeMatrix[{s}, basename, "sign"];
+    If[s =!= {}, writeMatrix[{s}, basename, "sign"]];
     l = r/.{-1       -> "<", 1           -> ">", 0    -> "=",
             LessEqual-> "<", GreaterEqual-> ">", Equal-> "="};
     writeMatrix[{l}, basename, "rel"];
